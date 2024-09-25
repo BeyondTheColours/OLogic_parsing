@@ -35,10 +35,10 @@ Will need to consider functions which depend on comp_expr later
 
 let comp_expr bin_op e1 e2 =
   match (e1, e2) with
-  |(Str_lit(s1), Str_lit(s2)) -> bin_op s1 s2
-  |(Int_lit(n1), Int_lit(n2)) -> bin_op n1 n2
-  |(Str_lit(s1), Int_lit(n1)) -> false
-  |(Int_lit(n1), Str_lit(s2)) -> false
+  |(Str_lit(s1), Str_lit(s2)) -> Some(bin_op e1 e2)
+  |(Int_lit(n1), Int_lit(n2)) -> Some(bin_op e1 e2)
+  |(Str_lit(s1), Int_lit(n1)) -> None
+  |(Int_lit(n1), Str_lit(s2)) -> None
 ;;
 
 let eval_test t =
@@ -50,9 +50,12 @@ let eval_test t =
 ;;
 
 let eval_op_test o t1 t2 =
-  match o with
-  |And -> (eval_test t1 && eval_test t2)
-  |Or -> (eval_test t1 || eval_test t2)
+  let bin_op =
+    if o = And then ( && )
+    else ( || ) in
+    try bin_op (eval_test t1) (eval_test t2) with
+    |Failure(x) -> raise(Failure("Cannot compare expressions of different types"))
+;;
 
 let rec eval_cond c =
   match c with
