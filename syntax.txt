@@ -1,0 +1,7 @@
+let 5 -> x;;
+
+if (cond) -> statements
+else -> statements
+;;
+
+while (cond) -> statements <-
