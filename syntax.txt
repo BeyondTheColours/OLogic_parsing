@@ -4,4 +4,4 @@ if (cond) -> statements
 else -> statements
 ;;
 
-while (cond) -> statements <-
+while (cond) -> statements;;
