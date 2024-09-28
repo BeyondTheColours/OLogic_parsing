@@ -14,18 +14,26 @@ type test =
 type log_op = And | Or
 ;;
 
-let log_op_to_bin_op log_op =
-  match log_op with
-  |And -> ( && )
-  |Or -> ( || )
-;;
-
 type cond =
   |True
   |False
   |Test of test
   |Cond of test*log_op*test
   |Conds of cond*log_op*cond
+;;
+
+type else_stat =
+  |Else of expr list
+;;
+
+type if_stat =
+  |If of cond*expr list*else_stat
+;;
+
+let log_op_to_bin_op log_op =
+  match log_op with
+  |And -> ( && )
+  |Or -> ( || )
 ;;
 
 let bind (o1, o2) f =
