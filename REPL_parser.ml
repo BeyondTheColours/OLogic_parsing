@@ -35,6 +35,8 @@ let extract_input input =
   |Some(v) -> v
 ;;
 
+let test = print_endline("I have made a change");;
+
 while true do
   print_string("~~>");
   let get_input =
