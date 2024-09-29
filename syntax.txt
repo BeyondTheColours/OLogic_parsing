@@ -1,7 +1,14 @@
-let 5 -> x;;
+let 5 = x;
 
-if (cond) -> statements
-else -> statements
-;;
+if (cond) {
+    statement1;
+    statement2;
+    ...
+}
+else {
+    statements
+}
 
-while (cond) -> statements;;
+while (cond) {
+    statements
+};

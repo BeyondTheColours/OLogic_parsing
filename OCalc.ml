@@ -161,13 +161,8 @@ let string_to_eq_list s =
   in string_to_eq_list_worker (ConsString.string_to_cons_string s) [] "" 
 ;;
 
-let intro = print_endline("Enter your equation: ");;
-let get_test = read_line();;
-
-let test = string_to_eq_list get_test;;
-
-let out = gen_parse_tree test;;
-
-let eval_out = eval out;;
-
-let p_eval = print_endline("= "^string_of_int eval_out^"\n");;
+let eval_eqn_string s =
+  let eq_list = string_to_eq_list s in
+  let parse_tree = gen_parse_tree eq_list in
+  eval parse_tree
+;;

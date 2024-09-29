@@ -1,14 +1,23 @@
-type expr =
+type literal =
   |Str_lit of string
   |Int_lit of int
   |Bool_lit of bool
 ;;
 
+type var =
+  |Var of string*literal
+;;
+
+type expr =
+  |Let of string*literal
+  |Reassign of string*literal*literal
+;;
+
 type test =
-  |Eq of expr*expr
-  |Neq of expr*expr
-  |Gt of expr*expr
-  |Lt of expr*expr
+  |Eq of literal*literal
+  |Neq of literal*literal
+  |Gt of literal*literal
+  |Lt of literal*literal
 ;;
 
 type log_op = And | Or
@@ -22,12 +31,10 @@ type cond =
   |Conds of cond*log_op*cond
 ;;
 
-type else_stat =
-  |Else of expr list
-;;
-
 type if_stat =
-  |If of cond*expr list*else_stat
+  |Body of expr list
+  |If of cond*if_stat
+  |Else of if_stat
 ;;
 
 let log_op_to_bin_op log_op =
@@ -47,20 +54,20 @@ let comp_opt bin_op a b = Some(bin_op a b);;
 
 let ( >>= ) o f = bind o f;;
 
-let comp_expr bin_op e1 e2 =
-  match (e1, e2) with
-  |(Str_lit(s1), Str_lit(s2)) -> Some(bin_op e1 e2)
-  |(Int_lit(n1), Int_lit(n2)) -> Some(bin_op e1 e2)
-  |(Bool_lit(b1), Bool_lit(b2)) -> Some(bin_op e1 e2)
+let comp_lit bin_op l1 l2 =
+  match (l1, l2) with
+  |(Str_lit(s1), Str_lit(s2)) -> Some(bin_op l1 l2)
+  |(Int_lit(n1), Int_lit(n2)) -> Some(bin_op l1 l2)
+  |(Bool_lit(b1), Bool_lit(b2)) -> Some(bin_op l1 l2)
   |_ -> None
 ;;
 
 let eval_test t =
   match t with
-  |Eq(expr1, expr2) -> comp_expr ( = ) expr1 expr2
-  |Neq(expr1, expr2) -> comp_expr ( != ) expr1 expr2
-  |Gt(expr1, expr2) -> comp_expr ( > ) expr1 expr2
-  |Lt(expr1, expr2) -> comp_expr ( < ) expr1 expr2
+  |Eq(expr1, expr2) -> comp_lit ( = ) expr1 expr2
+  |Neq(expr1, expr2) -> comp_lit ( != ) expr1 expr2
+  |Gt(expr1, expr2) -> comp_lit ( > ) expr1 expr2
+  |Lt(expr1, expr2) -> comp_lit ( < ) expr1 expr2
 ;;
 
 let eval_op_test o t1 t2 = ((eval_test t1), (eval_test t2)) >>= comp_opt(log_op_to_bin_op o)
@@ -77,6 +84,12 @@ let rec eval_cond c =
 
 let extract_evaluated_cond e =
   match e with
-  |None -> raise(Failure("Invalid conditional statement"))
+  |None -> raise(Failure("Invalid condition"))
   |Some(v) -> v
+;;
+
+let eval_expr l =
+  match l with
+  |Let(v_name, value) -> Var(v_name, value)
+  |Reassign(v_name, old_value, new_value) -> Var(v_name, new_value)
 ;;
