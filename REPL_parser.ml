@@ -11,9 +11,9 @@ let bind o f =
 let ( >>= ) o f = bind o f
 ;;
 
-let extract_input input =
-  match input with
-  |None -> Nil
+let extract o =
+  match o with
+  |None -> (Nil, Nil)
   |Some(v) -> v
 ;;
 
@@ -94,23 +94,47 @@ let statement_type c_s =
 ;;
 
 let parse_let let_stat =
-  consume_n 4 let_stat >>= remove_interal_whitespace
+  let rec split res stat =
+    match stat with
+    |Nil -> None
+    |Cons(c, t) ->
+      if c = '=' then (Some(res, t)) else
+        match split (Cons(c, res)) t with
+        |None -> None
+        |Some(v) -> Some(v)
+  in let remove_semicolon split_stat =
+    match split_stat with
+    |(a, b) ->
+      let rev_b = rev b in
+      match rev_b with
+      |Cons(c, t) ->
+        if c = ';' then Some(a, rev t)
+        else None
+      |Nil -> None
+  in consume_n 4 let_stat >>= remove_interal_whitespace >>= split Nil >>= remove_semicolon
 ;;
 
 let parse_statement stat_type_c_s_tuple =
   match stat_type_c_s_tuple with
   |(Let, c_s) -> parse_let c_s
-  |(If, c_s) -> consume_n 2 c_s >>= remove_interal_whitespace
-  |(Else, c_s) -> consume_n 4 c_s >>= remove_interal_whitespace
+  |(If, c_s) -> Some(c_s, c_s)(*consume_n 2 c_s >>= remove_interal_whitespace*)
+  |(Else, c_s) -> Some(c_s, c_s)(*consume_n 4 c_s >>= remove_interal_whitespace*)
 ;;
 
-while true do
+let rec loop mem =
   print_string("~~>");
   let get_input =
     let input = ConsString.string_to_cons_string(read_line()) in
     input |> trim >>= statement_type >>= parse_statement in
-  let extracted_input = extract_input get_input in
-  if extracted_input = Nil then print_endline("Invalid input\n")
-  else let output = ConsString.cons_string_to_string extracted_input in
-  print_endline(output^"\n")
-done
+  let extracted_input = extract get_input in
+  if extracted_input = (Nil, Nil) then print_endline("Invalid input\n")
+  else let output =
+    match extracted_input with
+    |(a,b) -> (cons_string_to_string a)^" "^(cons_string_to_string b)
+     in
+  print_endline(output^"\n");
+  loop (output::mem)
+
+;;
+
+let go = loop [];;
